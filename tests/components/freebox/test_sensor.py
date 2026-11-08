@@ -26,13 +26,13 @@ async def test_switch_port(
     """Test switch port traffic sensors."""
     await setup_platform(hass, SENSOR_DOMAIN)
 
-    assert hass.states.get("sensor.freebox_server_r2_port_1_receive_rate").state == (
-        "12.345"
-    )
-    assert hass.states.get("sensor.freebox_server_r2_port_1_transmit_rate").state == (
-        "67.89"
-    )
-    assert hass.states.get("sensor.freebox_server_r2_port_4_receive_rate")
+    assert hass.states.get(
+        "sensor.freebox_server_r2_ethernet_1_receive_rate"
+    ).state == ("12.345")
+    assert hass.states.get(
+        "sensor.freebox_server_r2_ethernet_1_transmit_rate"
+    ).state == ("67.89")
+    assert hass.states.get("sensor.freebox_server_r2_sfp_lan_receive_rate")
 
     # Simulate a changed rate
     data_switch_get_port_stats_changed = deepcopy(DATA_SWITCH_GET_PORT_STATS)
@@ -42,9 +42,9 @@ async def test_switch_port(
     freezer.tick(SCAN_INTERVAL)
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
-    assert hass.states.get("sensor.freebox_server_r2_port_1_receive_rate").state == (
-        "1.0"
-    )
+    assert hass.states.get(
+        "sensor.freebox_server_r2_ethernet_1_receive_rate"
+    ).state == ("1.0")
 
 
 async def test_switch_port_not_supported(hass: HomeAssistant, router: Mock) -> None:
@@ -52,7 +52,7 @@ async def test_switch_port_not_supported(hass: HomeAssistant, router: Mock) -> N
     router().switch.get_status.side_effect = HttpRequestError("Request failed")
     await setup_platform(hass, SENSOR_DOMAIN)
 
-    assert hass.states.get("sensor.freebox_server_r2_port_1_receive_rate") is None
+    assert hass.states.get("sensor.freebox_server_r2_ethernet_1_receive_rate") is None
 
 
 async def test_network_speed(
