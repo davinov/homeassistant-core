@@ -7,6 +7,9 @@
       "partition_free_space": {
         "default": "mdi:harddisk"
       },
+      "port_link_speed": {
+        "default": "mdi:speedometer"
+      },
       "port_rx_rate": {
         "default": "mdi:download-network"
       },

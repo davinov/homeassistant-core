@@ -17,6 +17,7 @@ from .const import (
     DATA_HOME_GET_NODES,
     DATA_STORAGE_GET_DISKS,
     DATA_SWITCH_GET_PORT_STATS,
+    DATA_SWITCH_GET_STATUS,
 )
 
 
@@ -45,6 +46,34 @@ async def test_switch_port(
     assert hass.states.get(
         "sensor.freebox_server_r2_ethernet_1_receive_rate"
     ).state == ("1.0")
+
+
+async def test_switch_port_link_speed(
+    hass: HomeAssistant, freezer: FrozenDateTimeFactory, router: Mock
+) -> None:
+    """Test switch port link speed sensors."""
+    await setup_platform(hass, SENSOR_DOMAIN)
+
+    assert (
+        hass.states.get("sensor.freebox_server_r2_ethernet_1_link_speed").state
+        == "1000"
+    )
+    # A port that is down reports no speed
+    assert (
+        hass.states.get("sensor.freebox_server_r2_ethernet_2_link_speed").state
+        == "unknown"
+    )
+
+    data_switch_get_status_changed = deepcopy(DATA_SWITCH_GET_STATUS)
+    data_switch_get_status_changed[1]["link"] = "up"
+    data_switch_get_status_changed[1]["speed"] = "100"
+    router().switch.get_status.return_value = data_switch_get_status_changed
+    freezer.tick(SCAN_INTERVAL)
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    assert (
+        hass.states.get("sensor.freebox_server_r2_ethernet_2_link_speed").state == "100"
+    )
 
 
 async def test_switch_port_not_supported(hass: HomeAssistant, router: Mock) -> None:

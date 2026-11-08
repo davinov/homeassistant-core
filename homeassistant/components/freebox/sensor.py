@@ -25,7 +25,7 @@ from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 from .entity import FreeboxHomeEntity
-from .router import FreeboxConfigEntry, FreeboxRouter
+from .router import FreeboxConfigEntry, FreeboxRouter, switch_port_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -82,6 +82,14 @@ SWITCH_PORT_SENSORS: tuple[SensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfDataRate.BYTES_PER_SECOND,
         suggested_unit_of_measurement=UnitOfDataRate.KILOBYTES_PER_SECOND,
     ),
+)
+
+SWITCH_PORT_SPEED_SENSOR = SensorEntityDescription(
+    key="speed",
+    translation_key="port_link_speed",
+    device_class=SensorDeviceClass.DATA_RATE,
+    native_unit_of_measurement=UnitOfDataRate.MEGABITS_PER_SECOND,
+    entity_category=EntityCategory.DIAGNOSTIC,
 )
 
 
@@ -154,6 +162,10 @@ async def async_setup_entry(
         FreeboxSwitchPortSensor(router, port_id, description)
         for port_id in router.switch_ports
         for description in SWITCH_PORT_SENSORS
+    )
+    entities.extend(
+        FreeboxSwitchPortSpeedSensor(router, port_id, SWITCH_PORT_SPEED_SENSOR)
+        for port_id in router.switch_ports
     )
 
     entities.extend(
@@ -303,9 +315,8 @@ class FreeboxSwitchPortSensor(FreeboxSensor):
         """Initialize a Freebox switch port sensor."""
         super().__init__(router, description)
         self._port_id = port_id
-        port = router.switch_ports[port_id]
         self._attr_translation_placeholders = {
-            "port": "SFP+" if port["rrd_id"] == "sfp_lan" else port["name"]
+            "port": switch_port_name(router.switch_ports[port_id])
         }
         self._attr_unique_id = f"{router.mac} switch_port {port_id} {description.key}"
 
@@ -315,6 +326,18 @@ class FreeboxSwitchPortSensor(FreeboxSensor):
         """Update the Freebox switch port sensor."""
         stats = self._router.switch_ports[self._port_id]["stats"] or {}
         self._attr_native_value = stats.get(self.entity_description.key)
+
+
+class FreeboxSwitchPortSpeedSensor(FreeboxSwitchPortSensor):
+    """Representation of a Freebox switch port negotiated speed."""
+
+    @callback
+    @override
+    def async_update_state(self) -> None:
+        """Update the Freebox switch port speed sensor."""
+        port = self._router.switch_ports[self._port_id]
+        # A port that is down still reports a speed
+        self._attr_native_value = int(port["speed"]) if port["link"] == "up" else None
 
 
 class FreeboxBatterySensor(FreeboxHomeEntity, SensorEntity):
