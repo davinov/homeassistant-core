@@ -15,7 +15,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import FreeboxHomeCategory
 from .entity import FreeboxHomeEntity
-from .router import FreeboxConfigEntry, FreeboxRouter, switch_port_name
+from .router import FreeboxConfigEntry, FreeboxRouter
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -160,7 +160,7 @@ class FreeboxSwitchPortLinkSensor(BinarySensorEntity):
         self._port_id = port_id
         self._attr_device_info = router.device_info
         self._attr_translation_placeholders = {
-            "port": switch_port_name(router.switch_ports[port_id])
+            "port": router.switch_ports[port_id]["name"]
         }
         self._attr_unique_id = f"{router.mac} switch_port {port_id} link"
 

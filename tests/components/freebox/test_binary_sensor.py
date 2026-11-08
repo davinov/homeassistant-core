@@ -34,7 +34,9 @@ async def test_switch_port_link(
     state = hass.states.get("binary_sensor.freebox_server_r2_ethernet_1_link")
     assert state.state == "on"
     assert state.attributes[ATTR_DEVICE_CLASS] == BinarySensorDeviceClass.CONNECTIVITY
-    assert hass.states.get("binary_sensor.freebox_server_r2_sfp_link").state == "off"
+    assert (
+        hass.states.get("binary_sensor.freebox_server_r2_sfp_lan_link").state == "off"
+    )
 
     # Simulate the port being unplugged
     data_switch_get_status_changed = deepcopy(DATA_SWITCH_GET_STATUS)
