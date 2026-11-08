@@ -303,8 +303,9 @@ class FreeboxSwitchPortSensor(FreeboxSensor):
         """Initialize a Freebox switch port sensor."""
         super().__init__(router, description)
         self._port_id = port_id
+        port = router.switch_ports[port_id]
         self._attr_translation_placeholders = {
-            "port": router.switch_ports[port_id]["name"]
+            "port": "SFP+" if port["rrd_id"] == "sfp_lan" else port["name"]
         }
         self._attr_unique_id = f"{router.mac} switch_port {port_id} {description.key}"
 

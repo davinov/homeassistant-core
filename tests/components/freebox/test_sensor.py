@@ -32,7 +32,7 @@ async def test_switch_port(
     assert hass.states.get(
         "sensor.freebox_server_r2_ethernet_1_transmit_rate"
     ).state == ("67.89")
-    assert hass.states.get("sensor.freebox_server_r2_sfp_lan_receive_rate")
+    assert hass.states.get("sensor.freebox_server_r2_sfp_receive_rate")
 
     # Simulate a changed rate
     data_switch_get_port_stats_changed = deepcopy(DATA_SWITCH_GET_PORT_STATS)
