@@ -60,6 +60,12 @@ def _get_token_file(hass: HomeAssistant, host: str) -> Path:
     return Path(f"{freebox_path}/{slugify(host)}.conf")
 
 
+def switch_port_name(port: dict[str, Any]) -> str:
+    """Return the name of a Freebox switch port."""
+    # Not every Freebox OS version reports a port name
+    return port.get("name") or f"Port {port['id']}"
+
+
 def _unlink_if_exists(path: Path) -> None:
     """Remove a file if it exists."""
     path.unlink(missing_ok=True)

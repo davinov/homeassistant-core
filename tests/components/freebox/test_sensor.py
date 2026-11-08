@@ -76,6 +76,16 @@ async def test_switch_port_link_speed(
     )
 
 
+async def test_switch_port_without_name(hass: HomeAssistant, router: Mock) -> None:
+    """Test switch port sensors fall back to the port id without a name."""
+    data_switch_get_status_no_name = deepcopy(DATA_SWITCH_GET_STATUS)
+    del data_switch_get_status_no_name[0]["name"]
+    router().switch.get_status.return_value = data_switch_get_status_no_name
+    await setup_platform(hass, SENSOR_DOMAIN)
+
+    assert hass.states.get("sensor.freebox_server_r2_port_1_receive_rate")
+
+
 async def test_switch_port_not_supported(hass: HomeAssistant, router: Mock) -> None:
     """Test no switch port sensor when the API does not support it."""
     router().switch.get_status.side_effect = HttpRequestError("Request failed")

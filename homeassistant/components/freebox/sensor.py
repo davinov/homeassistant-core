@@ -25,7 +25,7 @@ from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 from .entity import FreeboxHomeEntity
-from .router import FreeboxConfigEntry, FreeboxRouter
+from .router import FreeboxConfigEntry, FreeboxRouter, switch_port_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -316,7 +316,7 @@ class FreeboxSwitchPortSensor(FreeboxSensor):
         super().__init__(router, description)
         self._port_id = port_id
         self._attr_translation_placeholders = {
-            "port": router.switch_ports[port_id]["name"]
+            "port": switch_port_name(router.switch_ports[port_id])
         }
         self._attr_unique_id = f"{router.mac} switch_port {port_id} {description.key}"
 
