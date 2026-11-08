@@ -1,0 +1,13 @@
+[
+  {
+    "id": 1,
+    "link": "up",
+    "mode": "1000BaseT-FD",
+    "speed": "1000",
+    "duplex": "full",
+    "mac_list": [{ "mac": "8C:97:EA:00:00:00", "hostname": "d633d0c8-958c-43cc-e807-d881b076924b" }]
+  },
+  { "id": 2, "link": "down", "mode": "", "speed": "", "duplex": "", "mac_list": [] },
+  { "id": 3, "link": "down", "mode": "", "speed": "", "duplex": "", "mac_list": [] },
+  { "id": 4, "link": "down", "mode": "", "speed": "", "duplex": "", "mac_list": [] }
+]

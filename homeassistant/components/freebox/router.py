@@ -161,6 +161,8 @@ class FreeboxRouter:
         self.disks: dict[int, dict[str, Any]] = {}
         self.supports_raid = True
         self.raids: dict[int, dict[str, Any]] = {}
+        self.supports_switch = True
+        self.switch_ports: dict[int, dict[str, Any]] = {}
         self.sensors_temperature: dict[str, int] = {}
         self.sensors_temperature_names: dict[str, str] = {}
         self.sensors_fan: dict[str, int] = {}
@@ -255,6 +257,7 @@ class FreeboxRouter:
 
         await self._update_disks_sensors()
         await self._update_raids_sensors()
+        await self._update_switch_ports_sensors()
 
         async_dispatcher_send(self.hass, self.signal_sensor_update)
 
@@ -289,6 +292,25 @@ class FreeboxRouter:
 
         for fbx_raid in fbx_raids:
             self.raids[fbx_raid["id"]] = fbx_raid
+
+    async def _update_switch_ports_sensors(self) -> None:
+        """Update Freebox switch ports traffic."""
+        if not self.supports_switch:
+            return
+
+        try:
+            fbx_ports: list[dict[str, Any]] = await self._api.switch.get_status() or []
+            for fbx_port in fbx_ports:
+                self.switch_ports[fbx_port["id"]] = {
+                    **fbx_port,
+                    "stats": await self._api.switch.get_port_stats(fbx_port["id"]),
+                }
+        except HttpRequestError:
+            self.supports_switch = False
+            _LOGGER.warning(
+                "Router %s API does not support switch ports",
+                self.name,
+            )
 
     async def update_home_devices(self) -> None:
         """Update Home devices (alarm, light, sensor, switch, remote ...)."""

@@ -46,6 +46,12 @@
       "partition_free_space": {
         "name": "{partition} free space"
       },
+      "port_rx_rate": {
+        "name": "Port {port} receive rate"
+      },
+      "port_tx_rate": {
+        "name": "Port {port} transmit rate"
+      },
       "rate_down": {
         "name": "Download speed"
       },

@@ -65,6 +65,25 @@ DISK_PARTITION_SENSORS: tuple[SensorEntityDescription, ...] = (
     ),
 )
 
+SWITCH_PORT_SENSORS: tuple[SensorEntityDescription, ...] = (
+    SensorEntityDescription(
+        key="rx_bytes_rate",
+        translation_key="port_rx_rate",
+        device_class=SensorDeviceClass.DATA_RATE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfDataRate.BYTES_PER_SECOND,
+        suggested_unit_of_measurement=UnitOfDataRate.KILOBYTES_PER_SECOND,
+    ),
+    SensorEntityDescription(
+        key="tx_bytes_rate",
+        translation_key="port_tx_rate",
+        device_class=SensorDeviceClass.DATA_RATE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfDataRate.BYTES_PER_SECOND,
+        suggested_unit_of_measurement=UnitOfDataRate.KILOBYTES_PER_SECOND,
+    ),
+)
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -129,6 +148,12 @@ async def async_setup_entry(
         for disk in router.disks.values()
         for partition in disk["partitions"].values()
         for description in DISK_PARTITION_SENSORS
+    )
+
+    entities.extend(
+        FreeboxSwitchPortSensor(router, port_id, description)
+        for port_id in router.switch_ports
+        for description in SWITCH_PORT_SENSORS
     )
 
     entities.extend(
@@ -264,6 +289,29 @@ class FreeboxDiskSensor(FreeboxSensor):
         if partition.get("total_bytes"):
             value = round(partition["free_bytes"] * 100 / partition["total_bytes"], 2)
         self._attr_native_value = value
+
+
+class FreeboxSwitchPortSensor(FreeboxSensor):
+    """Representation of a Freebox switch port traffic sensor."""
+
+    def __init__(
+        self,
+        router: FreeboxRouter,
+        port_id: int,
+        description: SensorEntityDescription,
+    ) -> None:
+        """Initialize a Freebox switch port sensor."""
+        super().__init__(router, description)
+        self._port_id = port_id
+        self._attr_translation_placeholders = {"port": str(port_id)}
+        self._attr_unique_id = f"{router.mac} switch_port {port_id} {description.key}"
+
+    @callback
+    @override
+    def async_update_state(self) -> None:
+        """Update the Freebox switch port sensor."""
+        stats = self._router.switch_ports[self._port_id]["stats"] or {}
+        self._attr_native_value = stats.get(self.entity_description.key)
 
 
 class FreeboxBatterySensor(FreeboxHomeEntity, SensorEntity):

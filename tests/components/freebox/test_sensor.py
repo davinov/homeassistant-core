@@ -3,6 +3,7 @@
 from copy import deepcopy
 from unittest.mock import Mock
 
+from freebox_api.exceptions import HttpRequestError
 from freezegun.api import FrozenDateTimeFactory
 from pytest_homeassistant.common import async_fire_time_changed
 
@@ -15,7 +16,43 @@ from .const import (
     DATA_CONNECTION_GET_STATUS,
     DATA_HOME_GET_NODES,
     DATA_STORAGE_GET_DISKS,
+    DATA_SWITCH_GET_PORT_STATS,
 )
+
+
+async def test_switch_port(
+    hass: HomeAssistant, freezer: FrozenDateTimeFactory, router: Mock
+) -> None:
+    """Test switch port traffic sensors."""
+    await setup_platform(hass, SENSOR_DOMAIN)
+
+    assert hass.states.get("sensor.freebox_server_r2_port_1_receive_rate").state == (
+        "12.345"
+    )
+    assert hass.states.get("sensor.freebox_server_r2_port_1_transmit_rate").state == (
+        "67.89"
+    )
+    assert hass.states.get("sensor.freebox_server_r2_port_4_receive_rate")
+
+    # Simulate a changed rate
+    data_switch_get_port_stats_changed = deepcopy(DATA_SWITCH_GET_PORT_STATS)
+    data_switch_get_port_stats_changed["rx_bytes_rate"] = 1000
+    router().switch.get_port_stats.return_value = data_switch_get_port_stats_changed
+    # Simulate an update
+    freezer.tick(SCAN_INTERVAL)
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    assert hass.states.get("sensor.freebox_server_r2_port_1_receive_rate").state == (
+        "1.0"
+    )
+
+
+async def test_switch_port_not_supported(hass: HomeAssistant, router: Mock) -> None:
+    """Test no switch port sensor when the API does not support it."""
+    router().switch.get_status.side_effect = HttpRequestError("Request failed")
+    await setup_platform(hass, SENSOR_DOMAIN)
+
+    assert hass.states.get("sensor.freebox_server_r2_port_1_receive_rate") is None
 
 
 async def test_network_speed(
