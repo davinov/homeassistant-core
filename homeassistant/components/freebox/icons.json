@@ -8,7 +8,7 @@
         "default": "mdi:harddisk"
       },
       "port_link_speed": {
-        "default": "mdi:ethernet"
+        "default": "mdi:gauge"
       },
       "port_rx_rate": {
         "default": "mdi:download-network"
